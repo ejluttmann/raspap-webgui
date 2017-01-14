@@ -1,6 +1,7 @@
 raspap_dir="/etc/raspap"
 raspap_user="www-data"
 version=`cat /etc/debian_version`
+install_mode="manual"
 
 # Determine version and set default home location for lighttpd 
 if [ $version == "8.0" ]; then
@@ -28,16 +29,21 @@ function install_error() {
 function config_installation() {
     install_log "Configure installation"
     echo -n "Install directory [${raspap_dir}]: "
-    read input
-    if [ ! -z "$input" ]; then
-        raspap_dir="$input"
-    fi
 
-    echo -n "Complete installation with these values? [y/N]: "
-    read answer
-    if [[ $answer != "y" ]]; then
-        echo "Installation aborted."
-        exit 0
+    if [ $install_mode == "manual" ]; then
+        read -t 10 input
+        if [ ! -z "$input" ]; then
+            raspap_dir="$input"
+        fi
+
+        echo -n "Complete installation with these values? [y/N]: "
+        read -t 10 answer
+        if [[ $answer != "y" ]]; then
+            echo "Installation aborted."
+            exit 0
+        fi
+    else
+        raspap_dir="$input"
     fi
 }
 
@@ -58,7 +64,10 @@ function enable_php_lighttpd() {
     install_log "Enabling PHP for lighttpd"
 
     sudo lighty-enable-mod fastcgi-php || install_error "Cannot enable fastcgi-php for lighttpd"
-    sudo /etc/init.d/lighttpd restart || install_error "Unable to restart lighttpd"
+
+    if [ $install_mode == "manual" ]; then
+        sudo /etc/init.d/lighttpd restart || install_error "Unable to restart lighttpd"
+    fi
 }
 
 # Verifies existence and permissions of RaspAP directory
@@ -147,16 +156,19 @@ function patch_system_files() {
 function install_complete() {
     install_log "Installation completed!"
     
-    answer="n"
-    read -t 10 -p "The system needs to be rebooted as a final step. Reboot now? [y/N]: " answer
-    if [[ $answer != "y" ]]; then
-        echo "System needs to be rebooted before changes become in effect."
-        exit 0
+    if [ $install_mode == "manual" ]; then
+        read -p "The system needs to be rebooted as a final step. Reboot now? [y/N]: " answer
+        if [[ $answer != "y" ]]; then
+            echo "System needs to be rebooted before changes become in effect."
+            exit 0
+        fi
+        sudo shutdown -r now || install_error "Unable to execute shutdown"
     fi
-    sudo shutdown -r now || install_error "Unable to execute shutdown"
 }
 
 function install_raspap() {
+    install_mode="$1"
+
     config_installation
     update_system_packages
     install_dependencies
