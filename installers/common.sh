@@ -28,9 +28,9 @@ function install_error() {
 
 function config_installation() {
     install_log "Configure installation"
-    echo -n "Install directory [${raspap_dir}]: "
 
     if [ $install_mode == "manual" ]; then
+        echo -n "Install directory [${raspap_dir}]: "
         read -t 10 input
         if [ ! -z "$input" ]; then
             raspap_dir="$input"
@@ -43,7 +43,7 @@ function config_installation() {
             exit 0
         fi
     else
-        raspap_dir="$input"
+        echo -n "Installing into directory [${raspap_dir}]: "
     fi
 }
 
