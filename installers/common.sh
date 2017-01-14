@@ -1,7 +1,7 @@
 raspap_dir="/etc/raspap"
 raspap_user="www-data"
 version=`cat /etc/debian_version`
-install_mode="manual"
+install_mode="auto"
 
 # Determine version and set default home location for lighttpd 
 if [ $version == "8.0" ]; then
@@ -167,8 +167,6 @@ function install_complete() {
 }
 
 function install_raspap() {
-    install_mode="$1"
-
     config_installation
     update_system_packages
     install_dependencies

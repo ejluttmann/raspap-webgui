@@ -12,4 +12,4 @@ function install_dependencies() {
     sudo apt-get install lighttpd php5-cgi git hostapd dnsmasq || install_error "Unable to install dependencies"
 }
 
-install_raspap auto
+install_raspap
